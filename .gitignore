@@ -4,7 +4,7 @@
 ngram-log.txt
 twain*
 ~*
-*.ipynb
+*Lab*.?.ipynb
 *.txt
 *.pdf
 *.doc
