@@ -2,3 +2,10 @@
 1*
 2*
 ngram-log.txt
+twain*
+~*
+*.ipynb
+*.txt
+*.pdf
+*.doc
+.DS_Store

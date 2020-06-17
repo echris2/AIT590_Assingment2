@@ -21,6 +21,7 @@ import random
 import re
 import nltk
 import time
+import io
 
 from nltk.tokenize import word_tokenize
 from nltk.tokenize import sent_tokenize
@@ -60,14 +61,8 @@ def readCommandLineArguments():
     elif (int(sys.argv[2]) <= 0):
         print("Error: Incorrect arguments. Please enter total number of sentences a value greater than or equal to 1")
         sys.exit()
-    elif not (path.exists(sys.argv[3]) and not os.stat(sys.argv[3]).st_size < 10):
-        print("Error: Invalid File: " + sys.argv[3] + "  does not exist or too small to use.")
-        sys.exit()
-    elif not (path.exists(sys.argv[4]) and not os.stat(sys.argv[4]).st_size < 10):
-        print("Error: Invalid File: " + sys.argv[3] + "  does not exist or too small to use.")
-        sys.exit()
-    elif not (path.exists(sys.argv[5]) and not os.stat(sys.argv[5]).st_size < 10):
-        print("Error: Invalid File: " + sys.argv[3] + "  does not exist or too small to use.")
+    elif not (path.exists(sys.argv[3])):
+        print("Error: Invalid File: " + sys.argv[3] + "  does not exist.")
         sys.exit()
 
 
@@ -81,6 +76,62 @@ def readCommandLineArguments():
     txtFiles = [str(f) for f in sys.argv[3:]]
 
     return nGram, mSentences, txtFiles
+
+ 
+# generate sentences based on unigram
+def genAndShowUnigram(M, ngram_fqdist, sentence_tokens):
+    
+    uniFreqList = []
+    
+    temp = 0   
+    
+    # build a nested list to store [(token, cumulative relative frequency),...]
+    for k,v in ngram_fqdist.items():
+        temp = temp + v/len(sentence_tokens)
+        uniFreqList.append([k, temp])      
+
+    for m in range(0, M):        
+        sentence, word = '', ''
+        notEnd = True
+                   
+        while(notEnd):              
+            prob = random.uniform(0, 1)  # assign a random number between 0 and 1
+            
+            # use binary search to find where "prob" falls
+            left = 0
+            right = len(uniFreqList) - 1  
+              
+            while (right - left > 1):
+                mid = int((left + right) / 2)
+                
+                if uniFreqList[mid][1] > prob:
+                    right = mid
+                elif uniFreqList[mid][1] < prob:
+                    left = mid
+                else: 
+                    word = uniFreqList[mid][0]
+            
+            if uniFreqList[left][1] > prob:
+                word = uniFreqList[left][0]
+            elif uniFreqList[left][1] < prob:
+                word = uniFreqList[right][0]
+            else: 
+                word = uniFreqList[left][0]
+            
+            if word in string.punctuation and len(word_tokenize(sentence)) == 0: # if the first word is a punctuation , then skip it
+                continue
+            elif word == 'EOF' and len(word_tokenize(sentence)) <= 20:    # if the word is 'EOF', but the sentence is less than 20 words, then skip it          
+                continue
+            else:
+                sentence = sentence + " " + word
+                
+                # if the selecte word == "end", then end the setence creation
+                if word == 'EOF':  # make sure the sentence has at least 1 word. 
+                    notEnd = False
+        
+        sentence = re.sub(r'EOF', '', sentence)   # remove " EOF" from the sentence  
+        print("Sentence", m + 1, ": ", sentence)
+        print() 
 
 # use zip function to create N-gram based on tokens
 def generateNgrams(N, tokens):
@@ -98,12 +149,16 @@ def generateFQDist(N, inputCorpus):
     ngram_fqdist, nm1gram_freq_dist, sentence_tokens = [], [], []
     # read all files and create tokens
     for fName in inputCorpus:
-        with open(fName) as fp:
+        with io.open(fName, encoding="utf-8") as fp:
             tmpSentenceToken = sent_tokenize(fp.read())
             # Process each sentence
             for sentence in tmpSentenceToken:
                 # Process each word in the sentence
-                wTkn = re.findall(r"[\w]+|[^\s\w]", "BGN "+sentence+" EOF")
+                if N > 1:
+                    wTkn = re.findall(r"[\w]+|[^\s\w]", "BGN "+sentence+" EOF")
+                else:
+                    wTkn = re.findall(r"[\w]+|[^\s\w]", sentence+" EOF")
+
                 for wtk in wTkn:
                     sentence_tokens.append(wtk)
 
@@ -118,6 +173,7 @@ def generateFQDist(N, inputCorpus):
             n1Minus1Gram = generateNgrams(N-1, sentence_tokens[0:-1])
             nm1gram_freq_dist = nltk.FreqDist(n1Minus1Gram)
             logging.info(len(nm1gram_freq_dist))
+           
 
     return ngram_fqdist, nm1gram_freq_dist, sentence_tokens
 
@@ -142,19 +198,20 @@ def calculate_reltive_frq(N, ngram_fqdist, nm1gram_freq_dist, sentence_tokens):
 
     # Check lecture slide 50 in Lecture 4 - Ngrams_rev(1) for explanation
     for key, value in ngram_fqdist.items():
-        dict_ngram[key] = value/len(sentence_tokens)
+        dict_ngram[key] = value/len(ngram_fqdist)
 
-    # Check lecture slide 50 in Lecture 4 - Ngrams_rev(1) for explanation
-    for key, value in nm1gram_freq_dist.items():
-        dict_nm1gram[key] = value/len(sentence_tokens)
-
-    # formula for relative frequency freq(Xk-1, Xk)/freq(Xk-1)
     relative_frequency_dictionary = {}
-    for i in range(N - 1, len(sentence_tokens)):  # iterate all the tokens
-        previous_n_words = get_previous_n_words(i, N, sentence_tokens)
-        # print(i, condi_token)
+    if N > 1:
+        # Check lecture slide 50 in Lecture 4 - Ngrams_rev(1) for explanation
+        for key, value in nm1gram_freq_dist.items():
+            dict_nm1gram[key] = value/len(nm1gram_freq_dist)
 
-        relative_frequency_dictionary[(sentence_tokens[i], previous_n_words)] = dict_ngram[previous_n_words + " " + sentence_tokens[i]]/dict_nm1gram[previous_n_words]
+        # formula for relative frequency freq(Xk-1, Xk)/freq(Xk-1)
+        for i in range(N - 1, len(sentence_tokens)):  # iterate all the tokens
+            previous_n_words = get_previous_n_words(i, N, sentence_tokens)
+            # print(i, condi_token)
+
+            relative_frequency_dictionary[(sentence_tokens[i], previous_n_words)] = dict_ngram[previous_n_words + " " + sentence_tokens[i]]/dict_nm1gram[previous_n_words]
 
     return relative_frequency_dictionary
 
@@ -255,10 +312,12 @@ def main():
 
     ngram_fqdist, nm1gram_freq_dist, sentence_tokens = generateFQDist(N, inputCorpus)
 
-    relative_frequency_dictionary = calculate_reltive_frq(N, ngram_fqdist, nm1gram_freq_dist, sentence_tokens)
-
-    # logger.info(relative_frequency_dictionary)
-    generateRandomSentences(N, M, relative_frequency_dictionary)
+    if N > 1:
+        relative_frequency_dictionary = calculate_reltive_frq(N, ngram_fqdist, nm1gram_freq_dist, sentence_tokens)
+        # logger.info(relative_frequency_dictionary)
+        generateRandomSentences(N, M, relative_frequency_dictionary)
+    else:
+        genAndShowUnigram(M, ngram_fqdist, sentence_tokens)
 
     ### log processing
     process_time = time.mktime(time.localtime()) - time.mktime(start_time)  # get process time in seconds
