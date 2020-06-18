@@ -145,14 +145,17 @@ def generateNgrams(N, tokens):
 # @N - Number of n-grams
 # @inputCorpus - the name of the files to train the model
 #
+#def CleanCorpus(sentence):
+    
 def generateFQDist(N, inputCorpus):
     ngram_fqdist, nm1gram_freq_dist, sentence_tokens = [], [], []
     # read all files and create tokens
     for fName in inputCorpus:
-        with io.open(fName, encoding="utf-8") as fp:
+        with io.open(fName, encoding="ascii", errors = 'ignore') as fp:
             tmpSentenceToken = sent_tokenize(fp.read())
             # Process each sentence
             for sentence in tmpSentenceToken:
+                sentence = re.sub('[^A-z|\d|.,;:!?\\-\'\"|\s+]','', sentence)
                 # Process each word in the sentence
                 if N > 1:
                     wTkn = re.findall(r"[\w]+|[^\s\w]", "BGN "+sentence+" EOF")
