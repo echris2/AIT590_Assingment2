@@ -1,18 +1,64 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 # ### Programming Assignment 2: N-Gram ###
-# ![](Eliza.PNG)
+#
 # <br>
 # **Team 3:**
 # <br>
 # Srikanth Vadlamani, Jason Drahos, Eric Christiansen, Stephen Andre
+# Date 21 June, 2020
+# Course: AIT-5990-B01
+# 1. Introduction to the project: This project generates random sentences based on input from the user. The user selects text
+#    files to train the model and then decides how many ngrams, n,  will be utilized to generate m random sentences.Upon running
+#    the program the user selects how many n-grams to use, how many sentences to generate, and which text files will train the
+#    model.
 #
+#2.  To begin the program the user enters the following command into the command line
+#    py ngram.py n m file(s)
+#           Where n = the number of grams to use to teach the model
+#                 m = the number of random sentences to generate
+#                 file(s) = the files selected to train the model.
+#3.   Example
+#       Input:
+#           py ngram.py 3 10 pg1399.txt pg2600.txt pg2554.txt
+#
+#       Output:
+#            This program generates random sentences based on the number of Ngrams passed in the execution string.
+#            The program was developed by Stephen Andre, Eric Christiansen, Jason Drahos, and Srikanth Vadlamani
+#            The command line settings are: C:\Users\Jason\Downloads\ngram.py 3 10
+#            Sentence 1 :   A paper has come !
+#
+#            Sentence 2 :   My God , Im not serving .
+#
+#            Sentence 3 :   So one advances them a man of science .
+#
+#            Sentence 4 :   and here , Hlne who had spoken ?
+#
+#            Sentence 5 :   To the Committee on Army Regulations andwhat he had scenes with the fleeing crowd .
+#
+#            Sentence 6 :   Pierre finished his crust .
+#
+#            Sentence 7 :   Stepan Arkadyevitch .
+#
+#            Sentence 8 :   Yashvin _nest pas compromettant_ , and then began speaking in one of the Tsars suite by the scruff of the unwritten code , which she greeted her guests .
+#
+#            Sentence 9 :   So it is always on the endless diversity of race among these strangers , with brilliant black eyes that he was saying . Vronsky listened attentively and noticed that at the races and was utterly uncalled for to go , sir .
+#
+#            Sentence 10 :   Napoleon , to a footman he knew that his young master , the soldiers .
+#
+#4. Basic functionality
+#   a. Interface initiation
+#   b. generate start time for logging
+#   c. read command line arguments
+#   d. generate ngrams
+#   e. generate frequency distribution
+#   f. generate relative frequency distribution
+#   g. sentence generation
+#       i.find previous word
+#       ii. get the next word
+#       iii. generate the sentence and print
 # Citation:
 #       https://rstudio-pubs-static.s3.amazonaws.com/115676_ab6bb49748c742b88127e8b5ce3e1298.html
 #       https://www.geeksforgeeks.org/word-prediction-using-concepts-of-n-grams-and-cdf/
 #       https://medium.com/@davidmasse8/predicting-the-next-word-back-off-language-modeling-8db607444ba9
-#
 
 import sys
 import os.path
@@ -44,25 +90,25 @@ logger.info("=====N-Gram execution Start==========")
 
 def readCommandLineArguments():
     # print(len(sys.argv))
-    if len(sys.argv) < 5:
-        print("Error: Incorrect arguments. Please enter command in followsing format:")
-        print()
-        print("python3 Assignment2-Ngram.py 3 10 pg2554.txt pg2600.txt pg1399.txt")
-        print()
-        print("where    3 - n-grams")
-        print("         10 - number of random sentences")
-        print("         pg2554.txt: Represents first text files to train the model.")
-        print("         pg2600.txt  Represents second text files to train the model.")
-        print("         pg1399.txt: Represents third text files to train the model.")
-        sys.exit()
+    if len(sys.argv) < 3:
+            print("Error: Incorrect arguments. Please enter command in followsing format:")
+            print()
+            print("python3 Assignment2-Ngram.py 3 10 pg2554.txt pg2600.txt pg1399.txt")
+            print()
+            print("where    3 - n-grams")
+            print("         10 - number of random sentences")
+            print("         pg2554.txt: Represents first text files to train the model.")
+            print("         pg2600.txt  Represents second text files to train the model.")
+            print("         pg1399.txt: Represents third text files to train the model.")
+            sys.exit()
     elif(int(sys.argv[1]) <= 0 ):
         print("Error: Incorrect arguments. Please enter N-Gram value greater than or equal to 1")
         sys.exit()
     elif (int(sys.argv[2]) <= 0):
         print("Error: Incorrect arguments. Please enter total number of sentences a value greater than or equal to 1")
-        sys.exit()
+        sys.exit()        
     elif not (path.exists(sys.argv[3])):
-        print("Error: Invalid File: " + sys.argv[3] + "  does not exist.")
+        print("Error: Invalid File: " + sys.argv[3] + "  does not exist or too small to use.")
         sys.exit()
 
 
@@ -155,7 +201,7 @@ def generateFQDist(N, inputCorpus):
             tmpSentenceToken = sent_tokenize(fp.read())
             # Process each sentence
             for sentence in tmpSentenceToken:
-                sentence = re.sub('[^A-z|\d|.,;:!?\\-\'\"|\s+]','', sentence)
+                sentence = re.sub('[^A-z|\d|,;:\\\'\"|\s+]','', sentence)
                 # Process each word in the sentence
                 if N > 1:
                     wTkn = re.findall(r"[\w]+|[^\s\w]", "BGN "+sentence+" EOF")
@@ -303,8 +349,9 @@ def generateRandomSentences(N, M, relative_frequency_dictionary):
                 notEnd = False
 
         sentence = re.sub(r'BGN', '', sentence)  # remove "BGN" from the sentence
-        sentence = re.sub(r'EOF', '', sentence)  # remove "EOF" from the sentence
-        print("Sentence", m + 1, ": ", sentence)
+        sentence = re.sub(r'EOF', '.', sentence)  # remove "EOF" from the sentence
+        sentence = sentence.strip()
+        print("Sentence", m + 1, ": ", sentence.capitalize())
         print()
 
 def main():
@@ -312,6 +359,10 @@ def main():
     start_time = time.localtime()  # get start time
 
     N, M, inputCorpus = readCommandLineArguments()
+    
+    print("This program generates random sentences based on the number of Ngrams passed in the execution string.\n")
+    print("The program was developed by Stephen Andre, Eric Christiansen, Jason Drahos, and Srikanth Vadlamani.\n")
+    print ("The command line settings are:" , N, M, inputCorpus, "\n")
 
     ngram_fqdist, nm1gram_freq_dist, sentence_tokens = generateFQDist(N, inputCorpus)
 
