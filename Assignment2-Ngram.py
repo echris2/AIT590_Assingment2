@@ -151,7 +151,7 @@ def generateFQDist(N, inputCorpus):
     ngram_fqdist, nm1gram_freq_dist, sentence_tokens = [], [], []
     # read all files and create tokens
     for fName in inputCorpus:
-        with io.open(fName, encoding="ascii", errors = 'ignore') as fp:
+        with io.open(fName, encoding="utf-8") as fp:
             tmpSentenceToken = sent_tokenize(fp.read())
             # Process each sentence
             for sentence in tmpSentenceToken:
