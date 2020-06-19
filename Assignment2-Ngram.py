@@ -124,7 +124,7 @@ def readCommandLineArguments():
     return nGram, mSentences, txtFiles
 
  
-# generate sentences based on unigram
+# Description: generate sentences based on unigram. The method is isolated as it simple to avoid divide by zero errors.
 def genAndShowUnigram(M, ngram_fqdist, sentence_tokens):
     
     uniFreqList = []
@@ -164,14 +164,16 @@ def genAndShowUnigram(M, ngram_fqdist, sentence_tokens):
             else: 
                 word = uniFreqList[left][0]
             
-            if word in string.punctuation and len(word_tokenize(sentence)) == 0: # if the first word is a punctuation , then skip it
+            # skip if the first word is a punctuation.
+            if word in string.punctuation and len(word_tokenize(sentence)) == 0: 
                 continue
-            elif word == 'EOF' and len(word_tokenize(sentence)) <= 20:    # if the word is 'EOF', but the sentence is less than 20 words, then skip it          
+            # Do not process 'EOF' and the sentence is less than 20 words           
+            elif word == 'EOF' and len(word_tokenize(sentence)) <= 20:    
                 continue
             else:
                 sentence = sentence + " " + word
                 
-                # if the selecte word == "end", then end the setence creation
+                # if the selecte word == "EOF", then end the setence creation
                 if word == 'EOF':  # make sure the sentence has at least 1 word. 
                     notEnd = False
         
@@ -187,11 +189,10 @@ def generateNgrams(N, tokens):
 
     return [" ".join(ngram) for ngram in ngrams_list]
 
-# The method will return relative frequency for N ad N-1 gram tokens.
+# The method will return Frequency Distribution for N ad N-1 gram tokens.
 # @N - Number of n-grams
 # @inputCorpus - the name of the files to train the model
 #
-#def CleanCorpus(sentence):
     
 def generateFQDist(N, inputCorpus):
     ngram_fqdist, nm1gram_freq_dist, sentence_tokens = [], [], []
@@ -227,7 +228,8 @@ def generateFQDist(N, inputCorpus):
     return ngram_fqdist, nm1gram_freq_dist, sentence_tokens
 
 
-# get the given word/words
+# Description: The method returns previous set of words for a given word.
+#  
 def get_previous_n_words(i, N, my_tokens):
     temp = []
     for j in range(1, N):
@@ -237,6 +239,18 @@ def get_previous_n_words(i, N, my_tokens):
     previous_n_words = ' '.join(map(str, temp))
     return previous_n_words
 
+# Description: The method computes Relative Frequency of N-Gram word tokens.
+# example from class slides
+#     <s> I am Sam </s>
+#     <s> Sam I am </s>
+#     <s> I do not like green eggs and ham </s>
+#
+#   For example, for a Bigram model it is done as  
+#   P( am | I ) = P( I am )/ P(I) = 2/3  
+#   P( I |<s> ) = 2/3 P( Sam |<s> ) = 1/3
+#   P( </s> |Sam ) = 1/2 
+#   P( Sam |am ) = 1/2 P( do|I ) = 1/3
+  
 def calculate_reltive_frq(N, ngram_fqdist, nm1gram_freq_dist, sentence_tokens):
     # variables to store N-Gram relative frequency and N-1 gram Relative Frequency
     dict_ngram, dict_nm1gram = {}, {}
@@ -264,7 +278,10 @@ def calculate_reltive_frq(N, ngram_fqdist, nm1gram_freq_dist, sentence_tokens):
 
     return relative_frequency_dictionary
 
-
+# Description: The method is a helper method to pick the next word and place it in a sentence with ascending to 
+#  descending probabilities of the phrase. A random value between 0 and 1, the next binary search is used to position
+#  the word appropriately in the sentence. 
+# 
 def predictNextWord(next_keys, relative_frequency_dictionary):
     total_probability, temp = 0, 0
     word = ''
@@ -306,7 +323,12 @@ def predictNextWord(next_keys, relative_frequency_dictionary):
     return word
 
 
-# generate sentences for N-gram
+# Description: The method generates Random M number of sentences using N words.
+#   The process involes randomly picking a word that starts after BGN delimiter. 
+#   Also, has relative frequency should not be zero
+#   so that a sentence can be generated from words with positve relative frequency. 
+#   The method will loop until a EOF is received from random words. 
+#
 def generateRandomSentences(N, M, relative_frequency_dictionary):
     for m in range(0, M):
         start_keys = []
@@ -353,7 +375,11 @@ def generateRandomSentences(N, M, relative_frequency_dictionary):
         sentence = sentence.strip()
         print("Sentence", m + 1, ": ", sentence.capitalize())
         print()
-
+#
+#
+# Main function to process the corpus. 
+#
+#
 def main():
 
     start_time = time.localtime()  # get start time
