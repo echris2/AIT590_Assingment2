@@ -6,17 +6,18 @@ Created on Thu Jul 16 11:36:07 2020
 """
 
 import sys
+import os
 import re
 import nltk
 import wikipedia as wiki
 import string
+
 
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import wordnet
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.chunk import tree2conlltags
 from nltk.stem import PorterStemmer
-import math
 
 #log_file = sys.argv[1]
 #lf = open(log_file)
@@ -30,36 +31,18 @@ punc = string.punctuation
 nouns = ['NN','NNP','NNPS']
 verbs = ['VB','VBD','VBG','VBN','VBP','VBZ']
 
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
+
 def get_input():
     user_query = input("[User] > ")
     return user_query
-
-def findNER(topic):
-    '''
-    
-
-    Parameters
-    ----------
-    topic : TYPE 
-        DESCRIPTION. topic of questions
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION. PERSON named entity in topic
-
-    '''
-    topic_tree = tree2conlltags(ne_chunk(pos_tag(word_tokenize(topic))))
-    
-    ner = []
-    for i in topic_tree:
-        if i[2] in ['B-PERSON', 'I-PERSON']: #find words tagged as persons
-            ner.append(i[0])
-    if ner:
-        ner = " ".join(ner) #join person names
-        return ner
-    else:
-        return False #if no persons return false
 
 
 def searchWiki(topic, pageRank = 0):
@@ -73,11 +56,17 @@ def searchWiki(topic, pageRank = 0):
     return results[pageRank]
 
 def extractWikiContent(page,sent_no = 0):
+        
     try:
-        pagetext = wiki.page(page, auto_suggest = False).content #take first page result
-        pagetext = re.sub(r'\s+',' ', pagetext) #remove extra spacing
+       with HiddenPrints():
+           pagetext = wiki.page(page, auto_suggest = False).content #take first page result
+           pagetext = re.sub(r'\w\.(\w\.)+',' ', pagetext)
+           pagetext = re.sub(r'\s+',' ', pagetext) #remove extra spacing
+        
+        #pagetext = re.sub('\([^)]*\)',"",pagetext)
     except:
         pagetext = False
+      
     return pagetext
 
 def answerQuestion(user_input):
@@ -102,18 +91,35 @@ def answerQuestion(user_input):
     
     if qWord.lower() == "who": #NER case
         
-        topic_proper_nouns = " ".join([tag[0] for tag in topic_tags if tag[1] in ['NNP', 'NNPS']])
-        result = searchWiki(topic_proper_nouns)
-        if result:
-            pagetext = extractWikiContent(result)
-            if pagetext:
-                sent_toks = sent_tokenize(pagetext)
-                ans = re.sub('\([^)]*\)',"",sent_toks[0])
-            else:
-                ans = "Sorry your question was not specifc enough, please provide more information"
-        else:
-            ans = "Sorry I was not able to find any information relating to this topic"
+        id_verbs = "(is|are|was|were)"
+        proper_tokens = [tag[0] for tag in topic_tags if tag[1] in ['NNP', 'NNPS']]
         
+        prop_pattern = '(' + "(.* )".join(proper_tokens) + ')'#allow for middle names and nicknames between proper names
+        match_pattern = prop_pattern + '( .* )*' + id_verbs + '(.*).'
+        
+        topic_proper_nouns = " ".join(proper_tokens)
+        result = searchWiki(topic_proper_nouns)
+        
+        try:
+            if result:
+                pagetext = extractWikiContent(result)
+                if pagetext:
+                    sent_toks = sent_tokenize(pagetext)
+                    
+                    candidates = []
+                    for sent in sent_toks:
+                        matched = re.search(match_pattern, sent)
+                        if matched is not None:
+                            candidates.append([matched[1],matched[4],matched[5]])
+                    ans = candidates[0]
+                    ans =" ".join(ans) + '\.'
+                else:
+                    ans = "Sorry your question was not specifc enough, please provide more information"
+            else:
+                ans = "Sorry I was not able to find any information relating to this topic"
+        except:
+            ans = "Sorry, that question was not specific enough for me to answer"
+            
     elif qWord.lower() == "where":
         
         match_patterns = '(.*) (locat(ed|ion)|address|found|occurred at|in) (.*)'
