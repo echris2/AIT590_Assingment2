@@ -31,9 +31,7 @@ nouns = ['NN','NNP','NNPS']
 verbs = ['VB','VBD','VBG','VBN','VBP','VBZ']
 
 def get_input():
-    print("Please input your query")
     user_query = input("[User] > ")
-    
     return user_query
 
 def findNER(topic):
@@ -183,4 +181,29 @@ def answerQuestion(user_input):
         ans = "Please ask a Who/What/When/Where Question"
         
     return ans
+
+def main():
+    print("Hello! Welcome to our Question Answering system!\n")
+    print("This system is designed to simple answer Who, What, When, and Where questions, so please ask accordingly.\n")
+    print("Use 'quit' or 'exit' to leave the system")
+    print("\nAre you ready to begin? Ask away!\n")
+    
+    sentinels = ['quit','exit']
+    flag = False
+    
+    while flag == False:
+        query = get_input()
+        
+        if query in sentinels:
+            print("Thanks so much for your time")
+            flag = True
+        else:
+            answer = answerQuestion(query)
+            answer = re.sub("\s+", " ",answer)
+            print(answer)
+
+if __name__ == "__main__":
+    main()
+
+    
     
