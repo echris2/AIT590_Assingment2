@@ -1,0 +1,43 @@
+## Correct Questions
+
+1) [User] > Who is Chris Johnson?
+Christopher Duan Johnson is a former American football running back.
+
+2) [User] > Who is Anthony Fauci?
+Anthony Stephen Fauci is an American physician and immunologist who has served as the director of the National Institute of Allergy and Infectious Diseases (NIAID) since 1984.
+
+3) [User] > Who is Gerald Ford?
+Gerald Rudolph Ford was an American politician who served as the 38th president of the United States from August 1974 to January 1977.
+
+4) [User] > When did Tecumseh die?
+Tecumseh passed away in 1813.
+
+5) [User] > When was the Italian Invasion of Albania?
+Invasion Albania occurred on April 7–12, 1939.
+
+6) [User] > What is the LHC?
+The Large Hadron Collider is the world's largest and highest-energy particle collider and the largest machine in the world.
+
+7) [User] > What is Natural Language Processing?
+Language processing refers to the way humans use words to communicate ideas and feelings, and how such communications are processed and understood.
+
+8) [User] > What is Philosphy?
+Philosophy is the study of general and fundamental questions about existence, knowledge, values, reason, mind, and language.
+
+9) 
+
+10)
+
+## Incorrect Questions
+
+1) [User] > Who is Emily Dickinson?
+Sorry, that question was not specific enough for me to answer
+
+2) [User] > Where is the Met?
+Among the most valuable pieces in the Met's Egyptian collection are 13 wooden models (of the total 24 models found together, 12 models and 1 offering bearer figure is at the Met, while the remaining 10 models and 1 offering bearer figure are in the Egyptian Museum in Cairo), discovered in a tomb in the Southern Asasif in western Thebes in 1920.
+
+11) [User] > What is the capital of Connecticut?
+Capital punishment in Connecticut formerly existed as an available sanction for a criminal defendant upon conviction for the commission of a capital offense.
+
+12) [User] > What is the meaning of Life?
+The meaning of life, or the answer to the question: "What is the meaning of life?
